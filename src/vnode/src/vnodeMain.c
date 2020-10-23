@@ -411,6 +411,13 @@ void vnodeRelease(void *pVnodeRaw) {
     pVnode->rqueue = NULL;
   }
 
+  // stop replication module
+  if (pVnode->sync) {
+    void *sync = pVnode->sync;
+    pVnode->sync = NULL;
+    syncStop(sync);
+  }
+ 
   taosTFree(pVnode->rootDir);
 
   if (pVnode->dropped) {
@@ -582,14 +589,12 @@ static void vnodeCleanUp(SVnodeObj *pVnode) {
     }
   }
 
-  // stop replication module
-  if (pVnode->sync) {
-    void *sync = pVnode->sync;
-    pVnode->sync = NULL;
-    syncStop(sync);
-  }
+  vTrace("vgId:%d, vnode will cleanup, refCount:%d", pVnode->vgId, pVnode->refCount);
 
-  vDebug("vgId:%d, vnode will cleanup, refCount:%d pVnode:%p", pVnode->vgId, pVnode->refCount, pVnode);
+  // Notify the sync module to stop forward, wait until the vnode write queue is empty, then exec syncStop
+  // Otherwise, when there is data in the vnode write queue, the use of pVnode->sync in vnodeProcessWrite will cause a
+  // race condition
+  syncNotifyStop(pVnode->sync);
 
   // release local resources only after cutting off outside connections
   qQueryMgmtNotifyClosed(pVnode->qMgmt);

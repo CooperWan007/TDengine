@@ -140,6 +140,7 @@ typedef struct SSyncNode {
   char         path[TSDB_FILENAME_LEN];
   int8_t       replica;
   int8_t       quorum;
+  int8_t       stop;
   uint32_t     vgId;
   void        *ahandle;
   int8_t       selfIndex;

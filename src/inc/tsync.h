@@ -108,6 +108,7 @@ void    syncCleanUp();
 
 tsync_h syncStart(const SSyncInfo *);
 void    syncStop(tsync_h shandle);
+void    syncNotifyStop(tsync_h shandle);
 int32_t syncReconfig(tsync_h shandle, const SSyncCfg *);
 int32_t syncForwardToPeer(tsync_h shandle, void *pHead, void *mhandle, int qtype);
 void    syncConfirmForward(tsync_h shandle, uint64_t version, int32_t code);

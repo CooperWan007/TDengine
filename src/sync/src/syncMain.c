@@ -206,6 +206,14 @@ void *syncStart(const SSyncInfo *pInfo) {
   return pNode;
 }
 
+void syncNotifyStop(void *param) {
+  SSyncNode *pNode = param;
+  if (pNode == NULL) return;
+
+  pNode->stop = 1;
+  sInfo("vgId:%d, sync will cleanup", pNode->vgId);
+}
+
 void syncStop(void *param) {
   SSyncNode *pNode = param;
   SSyncPeer *pPeer;
@@ -310,6 +318,7 @@ int32_t syncForwardToPeer(void *param, void *data, void *mhandle, int qtype) {
   int        code = 0;
 
   if (pNode == NULL) return 0;
+  if (pNode->stop) return 0;
 
   if (nodeRole == TAOS_SYNC_ROLE_SLAVE && pWalHead->version != nodeVersion + 1) {
     sError("vgId:%d, received ver:%" PRIu64 ", inconsistent with last ver:%" PRIu64 ", restart connection", pNode->vgId,
